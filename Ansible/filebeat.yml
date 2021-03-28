@@ -1,0 +1,35 @@
+## Deploy filebeat to webservers
+## filebeat.conf path should be updated to proper source location
+---
+  - name: Install Filebeat to Web App Servers
+    hosts: webservers
+    become: true
+    tasks:
+
+    - name: Download filebeat and install - update link for latest version
+      apt:
+        deb: https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.6.2-amd64.deb
+
+    - name: pull filebeat config file from jumpbox
+      ansible.builtin.copy:
+        src: /etc/ansible/filebeat.conf
+        dest: /etc/filebeat/filebeat.yml
+        mode: '0600'
+
+    - name: filebeat modulus enable
+      command: filebeat modules enable system
+
+    - name: filebeat setup
+      command: filebeat setup
+
+    - name: filebeat start
+      ansible.builtin.service:
+        name: filebeat
+        state: started
+
+    - name: Enable filebeat service
+      systemd:
+        name: filebeat
+        enabled: yes
+        state: restarted
+

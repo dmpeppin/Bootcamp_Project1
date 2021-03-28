@@ -1,0 +1,35 @@
+## Deploy metricbeat to web servers
+## metricbeat.conf path should be updated to proper source location
+---
+  - name: Install metricbeat to Web App Servers
+    hosts: webservers
+    become: true
+    tasks:
+
+    - name: Download metricbeat and install - update link for latest version
+      apt:
+        deb: https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.4.0-amd64.deb
+
+    - name: pull metricbeat config file from jumpbox
+      ansible.builtin.copy:
+        src: /etc/ansible/metricbeat.conf
+        dest: /etc/metricbeat/metricbeat.yml
+        mode: '0600'
+
+    - name: metricbeat modulus enable
+      command: metricbeat modules enable docker
+
+    - name: metricbeat setup
+      command: metricbeat setup
+
+    - name: metricbeat start
+      ansible.builtin.service:
+        name: metricbeat
+        state: started
+
+    - name: Enable metricbeat service
+      systemd:
+        name: metricbeat
+        enabled: yes
+        state: restarted
+
